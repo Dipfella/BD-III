@@ -9,6 +9,7 @@ const morgan_1 = __importDefault(require("morgan"));
 const helmet_1 = __importDefault(require("helmet"));
 const compression_1 = __importDefault(require("compression"));
 const cors_1 = __importDefault(require("cors"));
+const Asignatura_Routes_1 = __importDefault(require("./routes/Asignatura.Routes"));
 class Server {
     constructor() {
         this.app = (0, express_1.default)(); // mismo nombre de la clase
@@ -26,18 +27,8 @@ class Server {
     }
     routes() {
         this.app.get("/api", (req, res) => res.send("Hola Mundo"));
+        this.app.use('/api/asignatura', Asignatura_Routes_1.default);
         //todas las operaciones basicas
-        this.app.post("/api/calc", (req, res) => {
-            console.log(req.body);
-            let num1 = req.body.numA;
-            let num2 = req.body.numB;
-            res.json({
-                Suma: num1 + num2,
-                Resta: num1 - num2,
-                Multiplicacion: num1 * num2,
-                Division: num1 / num2
-            });
-        });
     }
     Start() {
         this.app.listen(this.app.get("port"), () => {

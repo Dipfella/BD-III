@@ -7,6 +7,9 @@ exports.mongoose = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 exports.mongoose = mongoose_1.default;
 const _URL = "mongodb+srv://julianDB:Js12345@dbiii.z1yfgko.mongodb.net/?retryWrites=true&w=majority&appName=DBIII";
-mongoose_1.default.connect(_URL)
-    .then(db => console.log('Db Conectada'))
-    .catch(err => console.error(err));
+mongoose_1.default.set("useFindAndModify", false);
+mongoose_1.default.connect(_URL || process.env.URL, {
+    useCreateIndex: true,
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+});

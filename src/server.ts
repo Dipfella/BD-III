@@ -4,6 +4,7 @@ import helmet from "helmet";
 import compression from "compression";
 import cors from "cors";
 
+import AsignaturaRoutes from "./routes/Asignatura.Routes";
 class Server {
   public app: express.Application;
 
@@ -25,18 +26,8 @@ class Server {
 
   routes() {
     this.app.get("/api", (req, res) => res.send("Hola Mundo"));
+    this.app.use('/api/asignatura', AsignaturaRoutes)
     //todas las operaciones basicas
-    this.app.post("/api/calc", (req, res) => {
-        console.log(req.body)
-      let num1: number = req.body.numA;
-      let num2: number = req.body.numB;
-      res.json({
-        Suma: num1 + num2,
-        Resta: num1 - num2,
-        Multiplicacion: num1 * num2,
-        Division: num1 / num2
-      });
-    });
   }
 
   public Start() {
