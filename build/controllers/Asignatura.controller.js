@@ -13,20 +13,45 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const asignatura_model_1 = __importDefault(require("../models/asignatura.model"));
+const cursos_model_1 = __importDefault(require("../models/cursos.model"));
 class AsignaturaController {
-    constructor() {
-    }
     static createAsignatura(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { nombre, profesor, jornada } = req.body;
-            let cursos = [];
-            cursos = req.body.cursos;
-            const newAsignatura = new asignatura_model_1.default({ nombre, profesor, jornada, cursos });
-            yield newAsignatura.save();
-            res.json({
-                status: res.status,
-                message: 'Asignatura Creada'
-            });
+            try {
+                const { nombre, profesor, jornada, cursos } = req.body;
+                // Buscar todos los cursos existentes en la base de datos
+                const cursosExistentes = yield cursos_model_1.default.find({}, '_id');
+                const cursosExistentesIds = cursosExistentes.map((curso) => curso._id.toString());
+                // Verificar si todos los cursos existen
+                const cursosNoEncontrados = [];
+                for (const cursoId of cursos) {
+                    if (!cursosExistentesIds.includes(cursoId)) {
+                        cursosNoEncontrados.push(cursoId);
+                    }
+                }
+                if (cursosNoEncontrados.length > 0) {
+                    res.status(404).json({ error: `Los siguientes cursos no se encontraron: ${cursosNoEncontrados.join(', ')}` });
+                    return;
+                }
+                // Crear la nueva asignatura con los cursos asociados
+                const nuevaAsignatura = new asignatura_model_1.default({
+                    nombre,
+                    profesor,
+                    jornada,
+                    cursos
+                });
+                // Guardar la nueva asignatura en la base de datos
+                yield nuevaAsignatura.save();
+                // Respuesta exitosa
+                res.status(201).json({
+                    status: res.status,
+                    message: 'Asignatura creada exitosamente'
+                });
+            }
+            catch (error) {
+                console.error('Error al crear la asignatura:', error);
+                res.status(500).json({ error: 'Error interno del servidor' });
+            }
         });
     }
     static getAsignaturas(req, res) {
@@ -52,20 +77,20 @@ class AsignaturaController {
     static updateAsignatura(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const { id } = req.params;
-            const asignatura = yield asignatura_model_1.default.findByIdAndUpdate(id, req.body);
+            yield asignatura_model_1.default.findByIdAndUpdate(id, req.body);
             res.json({
                 status: 200,
-                asignatura: asignatura
+                message: 'Asignatura actualizada'
             });
         });
     }
     static deleteAsignatura(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const { id } = req.params;
-            const asignatura = yield asignatura_model_1.default.findByIdAndRemove(id, req.body);
+            yield asignatura_model_1.default.findByIdAndRemove(id, req.body);
             res.json({
                 status: 200,
-                asignatura: asignatura
+                message: 'Asignatura Eliminada'
             });
         });
     }

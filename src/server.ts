@@ -5,6 +5,7 @@ import compression from "compression";
 import cors from "cors";
 
 import AsignaturaRoutes from "./routes/Asignatura.Routes";
+import CursoRoutes from "./routes/Curso.Routes";
 class Server {
   public app: express.Application;
 
@@ -15,7 +16,7 @@ class Server {
   }
 
   config() {
-    this.app.set("port", process.env.PORT || 4300);
+    this.app.set("port", process.env.PORT ?? 4300);
     //Middlewares
     this.app.use(morgan("dev"));
     this.app.use(helmet());
@@ -27,6 +28,7 @@ class Server {
   routes() {
     this.app.get("/api", (req, res) => res.send("Hola Mundo"));
     this.app.use('/api/asignatura', AsignaturaRoutes)
+    this.app.use('/api/curso', CursoRoutes)
     //todas las operaciones basicas
   }
 
