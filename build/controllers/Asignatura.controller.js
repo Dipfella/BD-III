@@ -14,6 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const asignatura_model_1 = __importDefault(require("../models/asignatura.model"));
 const cursos_model_1 = __importDefault(require("../models/cursos.model"));
+const mongodb_1 = require("../config/mongodb");
 class AsignaturaController {
     static createAsignatura(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -56,11 +57,23 @@ class AsignaturaController {
     }
     static getAsignaturas(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const allAsignaturas = yield asignatura_model_1.default.find();
-            ;
+            const asignaturas = yield asignatura_model_1.default.aggregate([
+                {
+                    $lookup: {
+                        from: "cursomodels",
+                        localField: "cursos",
+                        foreignField: "_id",
+                        as: "cursosAsignatura"
+                    }
+                },
+                {
+                    $unwind: "$cursosAsignatura"
+                }
+            ]);
+            console.log(asignaturas);
             res.json({
                 status: 200,
-                asignaturas: allAsignaturas
+                asignaturas: asignaturas
             });
         });
     }
@@ -74,14 +87,69 @@ class AsignaturaController {
             });
         });
     }
-    static updateAsignatura(req, res) {
+    static getAsignaturasByIdCurso(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const { id } = req.params;
-            yield asignatura_model_1.default.findByIdAndUpdate(id, req.body);
-            res.json({
-                status: 200,
-                message: 'Asignatura actualizada'
-            });
+            console.log(id);
+            try {
+                const asignaturas = yield asignatura_model_1.default.aggregate([
+                    {
+                        $match: { "cursos": mongodb_1.mongoose.Types.ObjectId(id) }
+                    }
+                ]);
+                if (asignaturas.length === 0) {
+                    res.status(404).json({ status: 404, message: "No se encontraron asignaturas para el curso especificado." });
+                    return;
+                }
+                res.json({ status: 200, asignaturas: asignaturas });
+            }
+            catch (error) {
+                console.error("Error al buscar asignaturas por ID de curso:", error);
+                res.status(500).json({ status: 500, message: "Error interno del servidor." });
+            }
+        });
+    }
+    static updateAsignatura(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { id } = req.params;
+                const { nombre, profesor, jornada, cursos } = req.body;
+                // Verificar si la asignatura existe
+                const asignaturaExistente = yield asignatura_model_1.default.findById(id);
+                if (!asignaturaExistente) {
+                    res.status(404).json({ error: 'La asignatura no se encontró' });
+                    return;
+                }
+                // Verificar si algunos de los cursos proporcionados no existen
+                const cursosExistentes = yield cursos_model_1.default.find({}, '_id');
+                const cursosExistentesIds = cursosExistentes.map((curso) => curso._id.toString());
+                const cursosNoEncontrados = [];
+                for (const cursoId of cursos) {
+                    if (!cursosExistentesIds.includes(cursoId)) {
+                        cursosNoEncontrados.push(cursoId);
+                    }
+                }
+                if (cursosNoEncontrados.length > 0) {
+                    res.status(404).json({ error: `Los siguientes cursos no se encontraron: ${cursosNoEncontrados.join(', ')}` });
+                    return;
+                }
+                // Actualizar la asignatura
+                yield asignatura_model_1.default.findByIdAndUpdate(id, {
+                    nombre,
+                    profesor,
+                    jornada,
+                    cursos
+                });
+                // Respuesta exitosa
+                res.status(200).json({
+                    status: res.status,
+                    message: 'Asignatura actualizada exitosamente'
+                });
+            }
+            catch (error) {
+                console.error('Error al actualizar la asignatura:', error);
+                res.status(500).json({ error: 'Error interno del servidor' });
+            }
         });
     }
     static deleteAsignatura(req, res) {

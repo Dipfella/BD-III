@@ -14,6 +14,7 @@ class AsignaturaRouter {
         this.router.post('/', asignatura_controller_1.default.createAsignatura);
         this.router.get('/', asignatura_controller_1.default.getAsignaturas);
         this.router.get('/:id', asignatura_controller_1.default.getAsignaturasById);
+        this.router.get('/idCurso/:id', asignatura_controller_1.default.getAsignaturasByIdCurso);
         this.router.put('/:id', asignatura_controller_1.default.updateAsignatura);
         this.router.delete('/:id', asignatura_controller_1.default.deleteAsignatura);
     }

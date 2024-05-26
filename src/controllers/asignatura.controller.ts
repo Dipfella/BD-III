@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import asignaturaModel from "../models/asignatura.model";
 import cursosModel from "../models/cursos.model";
+import { mongoose } from "../config/mongodb";
 
 class AsignaturaController {
 
@@ -47,11 +48,28 @@ class AsignaturaController {
     }
 
     static async getAsignaturas(req: Request, res: Response):Promise<void> {
-        const allAsignaturas = await asignaturaModel.find();;
+        const asignaturas = await asignaturaModel.aggregate(
+            [
+                {
+                    $lookup:
+                    {
+                        from: "cursomodels",
+                        localField: "cursos",
+                        foreignField: "_id",
+                        as: "cursosAsignatura"
+                    }
+                },
+                {
+                    $unwind: "$cursosAsignatura"
+                }
+            ]
+        )
+        console.log(asignaturas);
         res.json({
             status: 200,
-            asignaturas: allAsignaturas
+            asignaturas: asignaturas
         });
+
     }
 
     static async getAsignaturasById(req: Request, res: Response):Promise<void> {
@@ -62,6 +80,29 @@ class AsignaturaController {
             asignaturas: asignatura
         });
     }
+
+    static async getAsignaturasByIdCurso(req: Request, res: Response): Promise<void> {
+        const { id } = req.params;
+        console.log(id);
+        try {
+            const asignaturas = await asignaturaModel.aggregate([
+                {
+                    $match: { "cursos": mongoose.Types.ObjectId(id) }
+                }
+            ]);
+    
+            if (asignaturas.length === 0) {
+                res.status(404).json({ status: 404, message: "No se encontraron asignaturas para el curso especificado." });
+                return;
+            }
+    
+            res.json({ status: 200, asignaturas: asignaturas });
+        } catch (error) {
+            console.error("Error al buscar asignaturas por ID de curso:", error);
+            res.status(500).json({ status: 500, message: "Error interno del servidor." });
+        }
+    }
+    
 
     static async updateAsignatura(req: Request, res: Response): Promise<void> {
         try {
