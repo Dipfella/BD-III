@@ -13,8 +13,6 @@ export const TokenValidation = (req: Request, res: Response, next: NextFunction)
         if (!token) return res.status(401).json('Access Denied');
         const payload = jwt.verify(token, process.env.JWT_KEY ?? 'tokenTest') as IPayload;
         req.userId = payload._id;
-        console.log(payload);
-        console.log(req.userId);
         next();
     } catch (e) {
         res.status(400).send('Invalid Token');
