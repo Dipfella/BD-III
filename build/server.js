@@ -11,6 +11,7 @@ const compression_1 = __importDefault(require("compression"));
 const cors_1 = __importDefault(require("cors"));
 const Asignatura_Routes_1 = __importDefault(require("./routes/Asignatura.Routes"));
 const Curso_Routes_1 = __importDefault(require("./routes/Curso.Routes"));
+const Auth_Routes_1 = __importDefault(require("./routes/Auth.Routes"));
 class Server {
     constructor() {
         this.app = (0, express_1.default)(); // mismo nombre de la clase
@@ -31,7 +32,7 @@ class Server {
         this.app.get("/api", (req, res) => res.send("Hola Mundo"));
         this.app.use('/api/asignatura', Asignatura_Routes_1.default);
         this.app.use('/api/curso', Curso_Routes_1.default);
-        //todas las operaciones basicas
+        this.app.use('/api/auth', Auth_Routes_1.default);
     }
     Start() {
         this.app.listen(this.app.get("port"), () => {

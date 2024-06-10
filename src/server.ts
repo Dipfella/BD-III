@@ -6,6 +6,7 @@ import cors from "cors";
 
 import AsignaturaRoutes from "./routes/Asignatura.Routes";
 import CursoRoutes from "./routes/Curso.Routes";
+import AuthRouter from "./routes/Auth.Routes";
 class Server {
   public app: express.Application;
 
@@ -29,7 +30,7 @@ class Server {
     this.app.get("/api", (req, res) => res.send("Hola Mundo"));
     this.app.use('/api/asignatura', AsignaturaRoutes)
     this.app.use('/api/curso', CursoRoutes)
-    //todas las operaciones basicas
+    this.app.use('/api/auth', AuthRouter)
   }
 
   public Start() {
