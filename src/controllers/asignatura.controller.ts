@@ -2,13 +2,19 @@ import { Request, Response } from "express";
 import asignaturaModel from "../models/asignatura.model";
 import cursosModel from "../models/cursos.model";
 import { mongoose } from "../config/mongodb";
+import usuarioModel from "../models/usuario.model";
 
 class AsignaturaController {
 
-    static async createAsignatura(req: Request, res: Response):Promise<void> {
+    static async createAsignatura(req: Request, res: Response): Promise<void> {
         try {
+            const usuario = await usuarioModel.findById(req.userId);
+            if (!usuario) {
+                res.status(404).json('Usuario no encontrado');
+                return;
+            }
             const { nombre, profesor, jornada, cursos } = req.body;
-            
+
             // Buscar todos los cursos existentes en la base de datos
             const cursosExistentes = await cursosModel.find({}, '_id');
             const cursosExistentesIds = cursosExistentes.map((curso: { _id: { toString: () => any; }; }) => curso._id.toString());
@@ -19,12 +25,12 @@ class AsignaturaController {
                     cursosNoEncontrados.push(cursoId);
                 }
             }
-    
+
             if (cursosNoEncontrados.length > 0) {
                 res.status(404).json({ error: `Los siguientes cursos no se encontraron: ${cursosNoEncontrados.join(', ')}` });
                 return;
             }
-            
+
             // Crear la nueva asignatura con los cursos asociados
             const nuevaAsignatura = new asignaturaModel({
                 nombre,
@@ -32,10 +38,10 @@ class AsignaturaController {
                 jornada,
                 cursos
             });
-            
+
             // Guardar la nueva asignatura en la base de datos
             await nuevaAsignatura.save();
-            
+
             // Respuesta exitosa
             res.status(201).json({
                 status: res.status,
@@ -47,7 +53,12 @@ class AsignaturaController {
         }
     }
 
-    static async getAsignaturas(req: Request, res: Response):Promise<void> {
+    static async getAsignaturas(req: Request, res: Response): Promise<void> {
+        const usuario = await usuarioModel.findById(req.userId);
+        if (!usuario) {
+            res.status(404).json('Usuario no encontrado');
+            return;
+        }
         const asignaturas = await asignaturaModel.aggregate(
             [
                 {
@@ -72,7 +83,12 @@ class AsignaturaController {
 
     }
 
-    static async getAsignaturasById(req: Request, res: Response):Promise<void> {
+    static async getAsignaturasById(req: Request, res: Response): Promise<void> {
+        const usuario = await usuarioModel.findById(req.userId);
+        if (!usuario) {
+            res.status(404).json('Usuario no encontrado');
+            return;
+        }
         const { id } = req.params;
         const asignatura = await asignaturaModel.findById(id);
         res.json({
@@ -82,40 +98,49 @@ class AsignaturaController {
     }
 
     static async getAsignaturasByIdCurso(req: Request, res: Response): Promise<void> {
+        const usuario = await usuarioModel.findById(req.userId);
+        if (!usuario) {
+            res.status(404).json('Usuario no encontrado');
+            return;
+        }
         const { id } = req.params;
-        console.log(id);
         try {
             const asignaturas = await asignaturaModel.aggregate([
                 {
                     $match: { "cursos": mongoose.Types.ObjectId(id) }
                 }
             ]);
-    
+
             if (asignaturas.length === 0) {
                 res.status(404).json({ status: 404, message: "No se encontraron asignaturas para el curso especificado." });
                 return;
             }
-    
+
             res.json({ status: 200, asignaturas: asignaturas });
         } catch (error) {
             console.error("Error al buscar asignaturas por ID de curso:", error);
             res.status(500).json({ status: 500, message: "Error interno del servidor." });
         }
     }
-    
+
 
     static async updateAsignatura(req: Request, res: Response): Promise<void> {
         try {
+            const usuario = await usuarioModel.findById(req.userId);
+            if (!usuario) {
+                res.status(404).json('Usuario no encontrado');
+                return;
+            }
             const { id } = req.params;
             const { nombre, profesor, jornada, cursos } = req.body;
-    
+
             // Verificar si la asignatura existe
             const asignaturaExistente = await asignaturaModel.findById(id);
             if (!asignaturaExistente) {
                 res.status(404).json({ error: 'La asignatura no se encontró' });
                 return;
             }
-    
+
             // Verificar si algunos de los cursos proporcionados no existen
             const cursosExistentes = await cursosModel.find({}, '_id');
             const cursosExistentesIds = cursosExistentes.map((curso: { _id: { toString: () => any; }; }) => curso._id.toString());
@@ -129,7 +154,7 @@ class AsignaturaController {
                 res.status(404).json({ error: `Los siguientes cursos no se encontraron: ${cursosNoEncontrados.join(', ')}` });
                 return;
             }
-    
+
             // Actualizar la asignatura
             await asignaturaModel.findByIdAndUpdate(id, {
                 nombre,
@@ -137,7 +162,7 @@ class AsignaturaController {
                 jornada,
                 cursos
             });
-    
+
             // Respuesta exitosa
             res.status(200).json({
                 status: res.status,
@@ -148,10 +173,15 @@ class AsignaturaController {
             res.status(500).json({ error: 'Error interno del servidor' });
         }
     }
-    
 
-    static async deleteAsignatura(req: Request, res: Response):Promise<void> {
-        const {id} = req.params;
+
+    static async deleteAsignatura(req: Request, res: Response): Promise<void> {
+        const usuario = await usuarioModel.findById(req.userId);
+        if (!usuario) {
+            res.status(404).json('Usuario no encontrado');
+            return;
+        }
+        const { id } = req.params;
         await asignaturaModel.findByIdAndRemove(id, req.body)
         res.json({
             status: 200,

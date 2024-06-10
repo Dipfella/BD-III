@@ -1,6 +1,6 @@
 import { Router } from "express";
 import CursoController from "../controllers/curso.controller";
-
+import { TokenValidation } from "../common/verifyToken";
 class CursoRouter {
 
     router: Router;
@@ -11,11 +11,11 @@ class CursoRouter {
     }
 
     routes(){
-        this.router.post('/', CursoController.createCurso);
-        this.router.get('/', CursoController.getCursos);
-        this.router.get('/:id', CursoController.getCursoById);
-        this.router.put('/:id', CursoController.updateCurso);
-        this.router.delete('/:id', CursoController.deleteCurso);
+        this.router.post('/', TokenValidation, CursoController.createCurso);
+        this.router.get('/', TokenValidation, CursoController.getCursos);
+        this.router.get('/:id', TokenValidation, CursoController.getCursoById);
+        this.router.put('/:id', TokenValidation, CursoController.updateCurso);
+        this.router.delete('/:id', TokenValidation, CursoController.deleteCurso);
     }
 }
 

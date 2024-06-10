@@ -13,9 +13,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const cursos_model_1 = __importDefault(require("../models/cursos.model"));
+const usuario_model_1 = __importDefault(require("../models/usuario.model"));
 class CursoController {
     static createCurso(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
+            const usuario = yield usuario_model_1.default.findById(req.userId);
+            if (!usuario) {
+                res.status(404).json('Usuario no encontrado');
+                return;
+            }
             const { nombre, cantEstudiantes, facultad } = req.body;
             const newCurso = new cursos_model_1.default({ nombre, cantEstudiantes, facultad });
             yield newCurso.save();
@@ -27,6 +33,11 @@ class CursoController {
     }
     static getCursos(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
+            const usuario = yield usuario_model_1.default.findById(req.userId);
+            if (!usuario) {
+                res.status(404).json('Usuario no encontrado');
+                return;
+            }
             const allCursos = yield cursos_model_1.default.find();
             ;
             res.json({
@@ -37,6 +48,11 @@ class CursoController {
     }
     static getCursoById(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
+            const usuario = yield usuario_model_1.default.findById(req.userId);
+            if (!usuario) {
+                res.status(404).json('Usuario no encontrado');
+                return;
+            }
             const { id } = req.params;
             const curso = yield cursos_model_1.default.findById(id);
             res.json({
@@ -47,6 +63,11 @@ class CursoController {
     }
     static updateCurso(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
+            const usuario = yield usuario_model_1.default.findById(req.userId);
+            if (!usuario) {
+                res.status(404).json('Usuario no encontrado');
+                return;
+            }
             const { id } = req.params;
             yield cursos_model_1.default.findByIdAndUpdate(id, req.body);
             res.json({
@@ -57,6 +78,11 @@ class CursoController {
     }
     static deleteCurso(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
+            const usuario = yield usuario_model_1.default.findById(req.userId);
+            if (!usuario) {
+                res.status(404).json('Usuario no encontrado');
+                return;
+            }
             const { id } = req.params;
             yield cursos_model_1.default.findByIdAndRemove(id, req.body);
             res.json({

@@ -1,5 +1,7 @@
 import { Router } from "express";
 import AsignaturaController from "../controllers/asignatura.controller";
+import { TokenValidation } from "../common/verifyToken";
+
 
 class AsignaturaRouter {
 
@@ -11,12 +13,12 @@ class AsignaturaRouter {
     }
 
     routes(){
-        this.router.post('/', AsignaturaController.createAsignatura);
-        this.router.get('/', AsignaturaController.getAsignaturas);
-        this.router.get('/:id', AsignaturaController.getAsignaturasById);
-        this.router.get('/idCurso/:id', AsignaturaController.getAsignaturasByIdCurso);
-        this.router.put('/:id', AsignaturaController.updateAsignatura);
-        this.router.delete('/:id', AsignaturaController.deleteAsignatura);
+        this.router.post('/', TokenValidation, AsignaturaController.createAsignatura);
+        this.router.get('/', TokenValidation, AsignaturaController.getAsignaturas);
+        this.router.get('/:id', TokenValidation, AsignaturaController.getAsignaturasById);
+        this.router.get('/idCurso/:id', TokenValidation, AsignaturaController.getAsignaturasByIdCurso);
+        this.router.put('/:id', TokenValidation, AsignaturaController.updateAsignatura);
+        this.router.delete('/:id', TokenValidation, AsignaturaController.deleteAsignatura);
     }
 }
 

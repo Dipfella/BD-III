@@ -15,10 +15,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const asignatura_model_1 = __importDefault(require("../models/asignatura.model"));
 const cursos_model_1 = __importDefault(require("../models/cursos.model"));
 const mongodb_1 = require("../config/mongodb");
+const usuario_model_1 = __importDefault(require("../models/usuario.model"));
 class AsignaturaController {
     static createAsignatura(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
+                const usuario = yield usuario_model_1.default.findById(req.userId);
+                if (!usuario) {
+                    res.status(404).json('Usuario no encontrado');
+                    return;
+                }
                 const { nombre, profesor, jornada, cursos } = req.body;
                 // Buscar todos los cursos existentes en la base de datos
                 const cursosExistentes = yield cursos_model_1.default.find({}, '_id');
@@ -57,6 +63,11 @@ class AsignaturaController {
     }
     static getAsignaturas(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
+            const usuario = yield usuario_model_1.default.findById(req.userId);
+            if (!usuario) {
+                res.status(404).json('Usuario no encontrado');
+                return;
+            }
             const asignaturas = yield asignatura_model_1.default.aggregate([
                 {
                     $lookup: {
@@ -79,6 +90,11 @@ class AsignaturaController {
     }
     static getAsignaturasById(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
+            const usuario = yield usuario_model_1.default.findById(req.userId);
+            if (!usuario) {
+                res.status(404).json('Usuario no encontrado');
+                return;
+            }
             const { id } = req.params;
             const asignatura = yield asignatura_model_1.default.findById(id);
             res.json({
@@ -89,8 +105,12 @@ class AsignaturaController {
     }
     static getAsignaturasByIdCurso(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
+            const usuario = yield usuario_model_1.default.findById(req.userId);
+            if (!usuario) {
+                res.status(404).json('Usuario no encontrado');
+                return;
+            }
             const { id } = req.params;
-            console.log(id);
             try {
                 const asignaturas = yield asignatura_model_1.default.aggregate([
                     {
@@ -112,6 +132,11 @@ class AsignaturaController {
     static updateAsignatura(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
+                const usuario = yield usuario_model_1.default.findById(req.userId);
+                if (!usuario) {
+                    res.status(404).json('Usuario no encontrado');
+                    return;
+                }
                 const { id } = req.params;
                 const { nombre, profesor, jornada, cursos } = req.body;
                 // Verificar si la asignatura existe
@@ -154,6 +179,11 @@ class AsignaturaController {
     }
     static deleteAsignatura(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
+            const usuario = yield usuario_model_1.default.findById(req.userId);
+            if (!usuario) {
+                res.status(404).json('Usuario no encontrado');
+                return;
+            }
             const { id } = req.params;
             yield asignatura_model_1.default.findByIdAndRemove(id, req.body);
             res.json({
